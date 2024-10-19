@@ -156,7 +156,7 @@ func (b *Bot ) handleSudoPassword(message *tgbotapi.Message){
     // sudoPasswd = fmt.Sprintf("%s", passwd)
     // fmt.Println(passwd)
     // mutex.Unlock()
-    return true
+    // return true
 
 }
 
