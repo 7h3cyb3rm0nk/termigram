@@ -151,11 +151,13 @@ func (b *Bot) handleCommand(message *tgbotapi.Message) {
 }
 
 func (b *Bot ) handleSudoPassword(message *tgbotapi.Message){
-    passwd := message.CommandArguments()[0]
+    // passwd := message.CommandArguments()[0]
     // mutex.Lock()
     // sudoPasswd = fmt.Sprintf("%s", passwd)
-    fmt.Println(passwd)
+    // fmt.Println(passwd)
     // mutex.Unlock()
+    return true
+
 }
 
 func loadConfig(configFile string) (Config, error) {
