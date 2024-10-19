@@ -9,10 +9,14 @@ import (
     "strings"
     "time"
     "github.com/joho/godotenv"
+    "sync"
 
     tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
-
+var (
+	sudoPasswd string
+	mutex       sync.RWMutex // Add a mutex for safe concurrent access
+)
 type Config struct {
     BotToken     string   `json:"bot_token"`
     AllowedUsers []int64  `json:"allowed_users"`
@@ -86,6 +90,7 @@ func (b *Bot) handleStart(message *tgbotapi.Message) {
         "Available commands:\n" +
         "/start - Show this help message\n" +
         "/getlogs - Get command execution logs\n" +
+        "/sudopassword {password} - to pass the password\n" +
         "For regular commands, just type the command\n" +
         "For sudo commands, prefix with 'sudo '\n\n" +
         fmt.Sprintf("Your Telegram ID: %d", message.From.ID)
@@ -95,6 +100,12 @@ func (b *Bot) handleStart(message *tgbotapi.Message) {
 }
 
 func (b *Bot) handleGetLogs(message *tgbotapi.Message) {
+    
+    if !b.isAuthorized(message.From.ID) {
+        msg := tgbotapi.NewMessage(message.Chat.ID, "Unauthorized access")
+        b.api.Send(msg)
+        return
+    }
     logs, err := os.ReadFile(b.logFile)
     if err != nil {
         msg := tgbotapi.NewMessage(message.Chat.ID, "Failed to read logs")
@@ -110,23 +121,23 @@ func (b *Bot) handleGetLogs(message *tgbotapi.Message) {
 func (b *Bot) handleCommand(message *tgbotapi.Message) {
     command := message.Text
     isSudo := strings.HasPrefix(command, "sudo ")
+    // Log the command
+    if err := b.logCommand(message.From.ID, command); err != nil {
+        log.Printf("Failed to log command: %v", err)
+    }
+
 
     if isSudo {
         command = strings.TrimPrefix(command, "sudo ")
     }
 
-    // Check authorization before executing the command
     if !b.isAuthorized(message.From.ID) {
         msg := tgbotapi.NewMessage(message.Chat.ID, "Unauthorized access")
         b.api.Send(msg)
         return
     }
 
-    // Log the command
-    if err := b.logCommand(message.From.ID, command); err != nil {
-        log.Printf("Failed to log command: %v", err)
-    }
-
+    
     // Execute the command
     output, err := b.executeCommand(command, isSudo)
     if err != nil {
@@ -137,6 +148,14 @@ func (b *Bot) handleCommand(message *tgbotapi.Message) {
 
     msg := tgbotapi.NewMessage(message.Chat.ID, output)
     b.api.Send(msg)
+}
+
+func (b *Bot ) handleSudoPassword(message *tgbotapi.Message){
+    passwd := message.CommandArguments()[0]
+    // mutex.Lock()
+    // sudoPasswd = fmt.Sprintf("%s", passwd)
+    fmt.Println(passwd)
+    // mutex.Unlock()
 }
 
 func loadConfig(configFile string) (Config, error) {
@@ -176,6 +195,7 @@ func main() {
     updateConfig.Timeout = 30
 
     updates := bot.api.GetUpdatesChan(updateConfig)
+    updates.Clear()
 
     for update := range updates {
         if update.Message == nil {
@@ -191,6 +211,8 @@ func main() {
             bot.handleStart(update.Message)
         case update.Message.Command() == "getlogs":
             bot.handleGetLogs(update.Message)
+        case update.Message.Command() == "sudopassword":
+            bot.handleSudoPassword(update.Message)
         default:
             bot.handleCommand(update.Message)
         }
