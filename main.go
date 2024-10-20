@@ -12,6 +12,8 @@ import (
 	// "sync"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/common-nighthawk/go-figure"
+	"github.com/fatih/color"
 )
 
 type Config struct {
@@ -60,6 +62,25 @@ func NewBot(config Config, logFile string) (*Bot, error) {
 func (b *Bot) isAuthorized(userID int64) bool {
 	return b.allowedUserIDs[userID]
 	// return true
+}
+
+func printBanner() {
+	myFigure := figure.NewFigure("Termigram", "doom", true)
+	
+	color.Cyan(myFigure.String())
+	
+	color.Yellow("Version: 1.0.0")
+	color.Yellow("Remote Command Execution Bot")
+	fmt.Println()
+	
+	color.Green("• Telegram Bot Started")
+	color.Green("• Logs will be saved to: bot_commands.log")
+	color.Green("• Configuration loaded from: config.json")
+	fmt.Println()
+	
+	// Print warning
+	color.Red("⚠ Warning: This bot provides system-level access. Ensure proper security measures.")
+	fmt.Println()
 }
 
 func (b *Bot) logCommand(userID int64, command string) error {
@@ -242,6 +263,11 @@ func loadConfig(configFile string) (Config, error) {
 }
 
 func main() {
+  cmd := exec.Command("clear")
+  cmd.Stdout = os.Stdout
+  cmd.Run()
+
+  printBanner()
 
 	config, err := loadConfig("config.json")
 	if err != nil {
