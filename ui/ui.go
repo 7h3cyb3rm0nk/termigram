@@ -8,6 +8,8 @@ import (
 	"github.com/7h3cyb3rm0nk/termigram/bot"
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
+	 "golang.org/x/term"
+	 "os"
 )
 
 type TermUI struct {
@@ -26,20 +28,25 @@ func NewTermUI(bot *bot.Bot) *TermUI {
 }
 
 func (t *TermUI) setupWidgets() {
+
+	width, _, err := term.GetSize(int(os.Stdout.Fd()))
+	if err != nil{
+		width=80
+	}
 	t.header = widgets.NewParagraph()
 	t.header.Title = "Termigram Bot"
 	t.header.Text = fmt.Sprintf("Bot Username: @%s | Status: Running", t.bot.Api.Self.UserName)
-	t.header.SetRect(0, 0, 100, 3)
+	t.header.SetRect(0, 0, width, 3)
 	t.header.BorderStyle.Fg = ui.ColorCyan
 
 	t.logs = widgets.NewList()
 	t.logs.Title = "Recent Commands"
-	t.logs.SetRect(0, 3, 100, 15)
+	t.logs.SetRect(0, 3, width, 15)
 	t.logs.BorderStyle.Fg = ui.ColorYellow
 
 	t.stats = widgets.NewParagraph()
 	t.stats.Title = "Statistics"
-	t.stats.SetRect(0, 15, 100, 20)
+	t.stats.SetRect(0, 15, width, 20)
 	t.stats.BorderStyle.Fg = ui.ColorGreen
 }
 
