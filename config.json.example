@@ -1,0 +1,11 @@
+{
+  "bot_token": "TELEGRAM_BOT_API_KEY",
+  "allowed_users": [TelegramId(Integer), 123456778],
+  "scripts":[
+    {
+      "id": "example_script",
+      "comment": "print hello world",
+      "command": "example.sh"
+    }
+  ] 
+}
