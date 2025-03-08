@@ -3,3 +3,4 @@ log/
 bot.log
 config.json
 termigram
+bot_commands.log

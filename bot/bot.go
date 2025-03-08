@@ -63,7 +63,8 @@ func (b *Bot) isAuthorized(userID int64) bool {
 func (b *Bot) logCommand(userID int64, command string) error {
 	f, err := os.OpenFile(b.LogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		return err
+		b.MessageChan <- fmt.Sprintf("[ERROR] Failed to open log file: %v", err)
+    return err
 	}
 	defer f.Close()
 
@@ -73,6 +74,7 @@ func (b *Bot) logCommand(userID int64, command string) error {
 		command)
 
 	if _, err := f.WriteString(logEntry); err != nil {
+    b.MessageChan <- fmt.Sprintf("[ERROR] Failed to write to log file: %v", err)
 		return err
 	}
 	return nil
